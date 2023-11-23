@@ -1,0 +1,233 @@
+2login and user details 2
+this code has some modifications v2
+
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import 'package:login_and_userdetails_api/user_session/User.dart' as UserSession;
+import 'package:login_and_userdetails_api/user_session/User.dart';
+import 'package:login_and_userdetails_api/user_session/attendance.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
+
+import 'attendance_page.dart';
+import 'main.dart';
+import 'menu_activity/ProfilePage.dart';
+
+class HomePage extends StatefulWidget {
+  final String mobileNumber;
+  HomePage({required this.mobileNumber});
+
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  List<User> users = [];
+  User? userInfo;
+  bool isLoading = false;
+
+  final dateController = TextEditingController();
+  String intime = '';
+  String result = '';
+  List<AttendanceRecord> attendanceRecords = [];
+
+  Future<void> markAttendance() async {
+    String currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+    final url = Uri.parse('https://api.trifrnd.com/portal/attend.php?apicall=checkin');
+    final response = await http.post(
+      url,
+      body: {
+        'mobile': widget.mobileNumber,
+        'date': currentDate,
+        'intime': intime,
+      },
+    );
+
+    String attendanceResult = '';
+
+    if (response.statusCode == 200) {
+      attendanceResult = '${response.body}';
+      print("The result is  ${response.body}");
+    } else {
+      attendanceResult = 'Failed to mark attendance: ${response.body}';
+    }
+
+    setState(() {
+      result = attendanceResult;
+      intime = '${DateTime.now().hour}:${DateTime.now().minute}:${DateTime.now().second}';
+
+      attendanceRecords.add(AttendanceRecord(
+        mobile: widget.mobileNumber,
+        date: currentDate,
+        intime: intime,
+        result: result,
+      ));
+    });
+  }
+
+  Future<void> fetchUsers() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    http.Response response = await http.get(
+      Uri.parse("https://api.trifrnd.com/portal/Attend.php?apicall=readall"),
+    );
+
+    setState(() {
+      isLoading = false;
+    });
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      List<User> userList = data.map((item) => UserSession.User(
+        id: item['id'],
+        fname: item['fname'],
+        lname: item['lname'],
+        empId: item['EmpId'],
+        email: item['email'],
+        mobile: item['mobile'],
+        departmentName: item['department_name'],
+      )).toList();
+
+      setState(() {
+        users = userList;
+        userInfo = users.firstWhere(
+              (user) => user.mobile == widget.mobileNumber,
+          orElse: () => UserSession.User(
+            id: '',
+            fname: '',
+            lname: '',
+            empId: '',
+            email: '',
+            mobile: '',
+            departmentName: '',
+          ),
+        );
+      });
+    } else {
+      print("API call failed");
+      Fluttertoast.showToast(
+        msg: "Server Connection Error!",
+        toastLength: Toast.LENGTH_SHORT,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    }
+  }
+
+  @override
+  void initState() {
+    fetchUsers();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        title: Text("HOME"),
+        actions: <Widget>[
+          PopupMenuButton(
+            itemBuilder: (BuildContext context) {
+              return [
+                PopupMenuItem(
+                  child: ListTile(
+                    title: Text('Welcome ${userInfo?.fname ?? ''}', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                PopupMenuItem(
+                  child: ListTile(
+                    title: Text('Profile', style: TextStyle(color: Colors.red)),
+                    onTap: () async {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.remove('userName');
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ProfilePage(loggedInUser: userInfo!)));
+                    },
+                  ),
+                ),
+                PopupMenuItem(
+                  child: ListTile(
+                    title: Text('Logout', style: TextStyle(color: Colors.red)),
+                    onTap: () async {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.remove('userName');
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginApp()));
+                    },
+                  ),
+                ),
+              ];
+            },
+            icon: Icon(Icons.more_vert),
+          ),
+        ],
+      ),
+      body: Center(
+        child: isLoading
+            ? CircularProgressIndicator()
+            : SingleChildScrollView( // Wrap with SingleChildScrollView
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              userInfo != null
+                  ? Column(
+                children: [
+                  SizedBox(height: 20),
+                  Text('Welcome: ${userInfo!.fname} ${userInfo!.lname}',
+                    style: TextStyle(fontWeight: FontWeight.bold),),
+
+
+                  SizedBox(height: 40),
+                  // TextFormField(
+                  //   controller: dateController,
+                  //   decoration: InputDecoration(labelText: 'Date (YYYY-MM-DD)'),
+                  //   keyboardType: TextInputType.datetime,
+                  // ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: markAttendance,
+                    child: Text('Mark Attendance'),
+                  ),
+                  Container(
+                    height: 400,
+                    child: ListView(
+                      children: [
+                        Text('Attendance Records:'),
+                        SingleChildScrollView( // Wrap with SingleChildScrollView
+                          scrollDirection: Axis.vertical,
+                          child: DataTable(
+                            columns: [
+                              DataColumn(label: Text('Date')),
+                              DataColumn(label: Text('Intime')),
+                              DataColumn(label: Text('Result')),
+                            ],
+                            rows: attendanceRecords.map((record) {
+                              return DataRow(
+                                cells: [
+                                  DataCell(Text(record.date)),
+                                  DataCell(Text(record.intime)),
+                                  DataCell(Text(record.result)),
+                                ],
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+                  : Text("User not found."),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

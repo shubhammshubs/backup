@@ -1,0 +1,151 @@
+**Upload the APP to Google PLay Store**
+
+This is the follow up steps to Upload the app to the Google Play Store.
+
+
+1) Step one Create The Bundle .abb File .
+
+
+In order to generate the abb file in Android studio or in any ohter relevent platform we need to follow the following steps :
+
+	1. In the Android Studio -> Rigtclick on android -> New -> Files -> Creat a file named ('key.properties').
+	2. In the key.properties file -> Copy pest this code
+
+		storePassword=abc@123  // Enter Your Password 
+		keyPassword=abc@123	   // Enter Your Password 
+		keyAlias=key0
+		storeFile=../../releasekey.jks
+
+
+	3. Now in the build.gradel -> copy pest the following code below the localProeprties ->
+
+		def keystoreProperties = new Properties()
+		def keystorePropertiesFile = rootProject.file('key.properties')
+		if (keystorePropertiesFile.exists()) {
+   		keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+		}
+
+
+	4. Replace the buildTypes present inside  build.greadle with the following code ->
+
+ 		signingConfigs {
+        		release {
+            		keyAlias keystoreProperties['keyAlias']
+            		keyPassword keystoreProperties['keyPassword']
+            		storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null // original code
+            		//storeFile file("key.jks") ? file("key.jks") : null //new solution for some customers
+            		storePassword keystoreProperties['storePassword']
+        		}
+    		}
+
+    		buildTypes {
+        		release {
+            		// TODO: Add your own signing config for the release build.
+            		// Signing with the debug keys for now, so `flutter run --release` works.
+            		signingConfig signingConfigs.release
+        		}
+    		}
+
+	5. Now in the Termnal -> pest this code ->
+
+		keytool -genkey -v -keystore releasekey.jks -keyalg RSA -keysize 2048 -validity 10000 -alias key0
+
+
+	make sure you your key is same as in the key.properties file .
+
+	6. Before step number 5 make sure your Keytool path is available in the same folder ->? if its now present in the same folder ,
+		You can locate the path manually in the C drive  and then pass that path to the terminal like followng example ->
+
+		& "C:\Program Files (x86)\Java\jdk-1.8\bin\keytool" -genkey -v -keystore releasekey.jks -keyalg RSA -keysize 2048 -validity 10000 -alias key0
+
+
+
+	7. Answer to all the quetions binge asked and make sure you keep the note of the answers they might be asked for the further updates 
+
+	example of questions -> 
+
+	Enter keystore password:  
+	Re-enter new password: 
+	What is your first and last name?
+	  [Unknown]:  shubham mahajan
+	What is the name of your organizational unit?
+	  [Unknown]:  MyExampleOrganization
+	What is the name of your organization?
+	  [Unknown]:  MyExampleOrganization
+	What is the name of your City or Locality?
+	  [Unknown]:  Pune
+	What is the name of your State or Province?
+	  [Unknown]:  Maharashtra
+	What is the two-letter country code for this unit?
+	  [Unknown]:  91
+	Is CN=shubham mahajan, OU=Trifrnd, O=Trifrnd, L=Pune, ST=Maharashtra, C=91 correct?
+	  [no]:  yes
+
+	8. Now Before Generating the app bundle File make sure to clean the project ->  flutter clean
+	Then rerun the project ->  flutter pub get
+
+	and Now run the command  ->  flutter build appbundle
+
+
+	**YOUR APP BUNDLE ABB FILE IS READY**
+
+[Importent :- Before Building the abb file make sure you change the domain name from -> 
+
+android {
+    defaultConfig {
+        applicationId "com.example.myapp"
+        // ...
+    }
+}
+
+
+to -> 
+android {
+    defaultConfig {
+        applicationId "com.yourdomain.yourapp"
+        // ...
+    }
+}
+
+Because Play Store has Restrected the "com.example" domain.]
+
+2) Step Two Upload you APP to Play Store.
+
+	1. Login to Google Play Console with you Email id (Wiht wich you have made Payments)
+		Select Create APP -> Enter app name and complete the given field of information.
+
+	2. Once you app is created in Go insid the app -> In the Testing field Select the testers ->
+		Then Go to Create a new release ->
+	3. In the Create a new release 1st select the Select the Key (mandatory to select the key provided by google else you can 
+		upload your own key).
+	4. Now add our .abb file to the app bundle console (If everything it right Then You will see the Lettest release 
+		with app Leteast Version along with Release Status).
+	5. fill the remaining Information And then send app for Internal Testing. 
+
+
+For More Information You Can reffer to this LInk = https://www.hindigyan.in/how-to-build-release-app-bundle-flutter-project/
+
+
+
+
+
+3) For Updating the .abb Bundle in play store we need to change the version of app from pubspec.yaml file
+
+	IN pubspec.yaml file change the setting form =
+		
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+# Both the version and the builder number may be overridden in flutter
+# build by specifying --build-name and --build-number, respectively.
+# In Android, build-name is used as versionName while build-number used as versionCode.
+# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
+# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
+# Read more about iOS versioning at
+# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+# In Windows, build-name is used as the major, minor, and patch parts
+# of the product and file versions while build-number is used as the build suffix.
+version: 1.0.0+1
+
+
+to =  version: 2.0.0+2    	# Update the Version in here

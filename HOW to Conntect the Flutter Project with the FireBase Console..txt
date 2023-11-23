@@ -1,0 +1,222 @@
+HOW to Connect the Flutter Project with the FireBase Console.
+
+
+
+1. Create an flutter project and then with the same name create an an project on Firebase .
+
+2. now inside the firebase project dashboard select the flutter option for connectivity.
+
+3. Once you click on Flutter option you will see this ->  Add Firebase to your Flutter app
+Inside you will have 4 different options =
+
+1)
+Prepare your workspace
+	The easiest way to get you started is to use the FlutterFire CLI.
+
+	Before you continue, make sure to:
+
+	Install the Firebase CLI and log in (run firebase login)
+	Install the Flutter SDK
+	Create a Flutter project (run flutter create)
+
+
+1.now in the first option select on =>  (Install the Firebase CLI) link 
+
+from there download the recommanded version of Node.js
+
+once node.js is downloaded install it on the system.
+
+2. Once install you will be asked to run the following command in CMD prompt.
+
+=> npm install -g firebase-tools
+
+you possiblily see an message like this => 
+changed/install 681 packages in 3m
+
+
+3. then run the (firebase login) command on CMD
+And login to you gmail accound on which the firebase is registede
+
+4. Just to make sure every thing is going fine run the following command to check the projcet list =>
+
+firebase projects:list
+
+if you see all the project which is on the firebase then every thing is going good .
+
+2) step 2 =
+Install and run the FlutterFire CLI.
+
+
+run this command on the cmd prompt once install you will see the message like this = 
+
+Package flutterfire_cli is currently active at version 0.2.7.
+The package flutterfire_cli is already activated at newest available version.
+To recompile executables, first run `dart pub global deactivate flutterfire_cli`.
+Installed executable flutterfire.
+Activated flutterfire_cli 0.2.7.
+
+
+
+NOTE=(If you got the worning on given path is not in the env then set the give path to the enviornment =>
+
+
+in my case path is this  ->  C:\Users\Shubham\AppData\Local\Pub\Cache\bin
+
+
+also add this path too if not present already => C:\Users\Shubham\AppData\Roaming\npm.
+
+
+
+
+once the path is set restart the PC else the you will still recive the same warning .
+
+3. after resartng the pc run the above command again .
+
+$. next run this coomand with the project name  =flutterfire configure --project=tryotpnew
+
+run this command inside the project terminal => if all the setups are correct you will be asked to select the platforms for android,ios ,web etc.
+
+select you desired platform with space bar and press enter to run the command . if every thing goes right you will recive this message with APP iD => 
+
+
+
+PS C:\Users\Shubham\tryotpnew> flutterfire configure --project=tryotpnew
+i Found 5 Firebase projects. Selecting project tryotpnew.
+✔ Which platforms should your configuration support (use arrow keys & space to select)? · android, ios
+i Firebase android app com.example.tryotpnew is not registered on Firebase project tryotpnew.
+i Registered a new Firebase android app on Firebase project tryotpnew.
+i Firebase ios app com.example.tryotpnew is not registered on Firebase project tryotpnew.
+i Registered a new Firebase ios app on Firebase project tryotpnew.
+
+Firebase configuration file lib\firebase_options.dart generated successfully with the following Firebase apps:
+
+Platform  Firebase App Id
+android   1:831137767600:android:1751634b1115174516db75
+ios       1:831137767600:ios:7465aea0049fb3f116db75
+
+Learn more about using this file and next steps from the documentation:
+ > https://firebase.google.com/docs/flutter/setup
+
+
+4. then you will find this file (firebase_options.dart) in your projects lib folder (lib/firebase_options.dart).
+
+once the you open the lib/firebase_options.dart file you will notice few errors in the file for that we will be needed to import few packages 
+in our pubspec.yaml.=>
+
+the packages are =>     firebase_auth: ^4.12.0
+  			firebase_core: ^2.20.0
+
+install the lettest version .
+you will see the error mark in the (firebase_options.dart)  is gone. 
+
+
+5. Initialize Firebase and add plugins.
+
+add the following code in your main().
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+
+  );
+runapp ....
+}     
+(THIS will make the connection with the firebase )
+
+
+6) Now in the firebase console -> goto authentication on the left side menu .
+
+select the desired service in my case i'll select the phone select on it press enable and save .
+
+
+7) Now we need to Add Fingreprint of the flutter project .
+
+for that go to flutter project -> inside the android you will find gradlew folder right click on that folder select open in Terminal.
+
+now in the terminal run the following command =>  .\gradlew signingReport.
+
+
+
+in output you will find  2 keys SHA1 and SHA256 key copy both keys and pest in firebase .
+
+n firebase goto project overview/select android option /go to android setting 
+
+at the bottom you will see add fingreprint option .
+add both SHA1 and SHA256 .
+
+
+now we are all setup for and ready to make our project run .
+
+
+(NOTE:- firebase keep updating the console so some steps may change but overall process will always be the same.)
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+Certainly, here's your content formatted for better readability:
+
+**Connecting a Flutter Project with Firebase Console: A Step-by-Step Guide**
+
+1. **Project Initialization**
+   - Start by creating a Flutter project with the same name as your Firebase project.
+
+2. **Firebase Console**
+   - Access the Firebase Console and select the "Flutter" option for connectivity.
+
+3. **Preparing Your Workspace**
+   - Install the Firebase CLI and log in with `firebase login`.
+   - Make sure you have the Flutter SDK installed and create a Flutter project using `flutter create`.
+
+4. **Installing Firebase CLI**
+   - Download the recommended version of Node.js.
+   - Install Node.js and then run the command `npm install -g firebase-tools` in your command prompt. It may take some time to install the necessary packages.
+
+5. **Authentication**
+   - Run `firebase login` to log in with your Gmail account associated with Firebase.
+   - Ensure everything is set up correctly by running `firebase projects:list` to view the list of your Firebase projects.
+
+6. **Install the FlutterFire CLI**
+   - Execute `flutter pub global activate flutterfire_cli` to install the FlutterFire CLI. If you encounter environment path issues, ensure that the path to `flutter/bin/cache/dart-sdk/bin` is in your environment variables.
+
+7. **Configure Firebase**
+   - Run `flutterfire configure --project=your_project_name` in your project's terminal. This will prompt you to select the platforms you want to configure, such as Android or iOS.
+
+8. **Firebase Configuration File**
+   - Find the `firebase_options.dart` file in your project's `lib` folder.
+   - In your `pubspec.yaml` file, import the necessary packages to resolve errors: `firebase_auth: ^4.12.0` and `firebase_core: ^2.20.0`.
+
+9. **Initialize Firebase**
+   - In your `main()` function, ensure Firebase is initialized with the following code:
+   
+   ```dart
+   Future<void> main() async {
+     WidgetsFlutterBinding.ensureInitialized();
+     await Firebase.initializeApp(
+       options: DefaultFirebaseOptions.currentPlatform,
+     );
+     runApp(...);
+   }
+   ```
+
+10. **Firebase Authentication**
+    - In the Firebase Console, go to "Authentication" on the left menu. Enable the desired service, such as phone authentication, and save your settings.
+
+11. **Add Fingerprint**
+    - To enhance security, navigate to your Flutter project's "android" folder and find the `gradlew` folder.
+    - Right-click on the folder and select "Open in Terminal."
+    - In the terminal, run the command `.\gradlew signingReport`.
+    - You'll obtain two keys: SHA1 and SHA256. Copy both keys and paste them in the Firebase Console.
+    
+    - In the Firebase Console, go to "Project Overview," select the "Android" option, and navigate to "Android Settings."
+    - At the bottom, you will find an option to add fingerprints. Add both SHA1 and SHA256 keys.
+    
+Now your setup is complete, and your project is ready to run.
+
+Please note that while the Firebase Console interface may change over time, the fundamental process remains consistent. Happy coding!
+
+[NOTE: Firebase's console may receive updates, so some steps may change. However, the overall process will always be similar.]
